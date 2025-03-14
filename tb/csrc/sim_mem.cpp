@@ -26,6 +26,21 @@ void sim_mem_write(Vaquila_testharness_dp_ram* ram,uint32_t addr, size_t length,
     }
 }
 
+void load_program(const std::string fn, char*& buf){
+    std::ifstream bpfs(fn, std::ios::binary|std::ios::ate);
+    
+    std::ifstream::pos_type pos = bpfs.tellg();
+
+    int f_length = pos;
+
+    buf = new char[f_length];
+    bpfs.seekg(0, std::ios::beg);
+    bpfs.read(buf, f_length);
+    bpfs.close();
+
+    std::cout << "buf len : " << f_length << std::endl;
+}
+
 
 std::map<std::string, uint64_t> sim_mem_load_program(Vaquila_testharness_dp_ram* ram, const std::string fn, uint32_t* entry)
 {
@@ -111,7 +126,7 @@ int sim_mem_dump_memory(Vaquila_testharness_dp_ram* ram, const std::string fn)
     for (int i = 0 ; i < mem_size ; i+=4) {
         fs << "0x" << std::setfill('0') << std::setw(8)
             << std::right << std::hex << i + mem_offset << ":  0x";
-        for (int j = 3 ; j >=0 ; j--) {
+        for (int j = 0 ; j < 4 ; j++) {
             fs << std::setfill('0') << std::setw(2) << std::right
                 << std::hex << (unsigned int)ram->mem[i+j];
         }

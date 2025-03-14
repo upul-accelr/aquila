@@ -54,14 +54,14 @@
 // =============================================================================
 */
 
-__stack_size = 0x200;
+__stack_size = 0x300;
 __heap_size  = 0x5000;
 __heap_start = __stack_top+4;
 
 MEMORY
 {
-    code_ram   (rx!rw) : ORIGIN = 0x00001000, LENGTH = 0x4000
-    data_ram   (rw!x)  : ORIGIN = 0x00005000, LENGTH = 0x5000
+    code_ram   (rx!rw) : ORIGIN = 0x80000000, LENGTH = 0x5000
+    data_ram   (rw!x)  : ORIGIN = 0x80005000, LENGTH = 0x6000
 }
 
 ENTRY(crt0)

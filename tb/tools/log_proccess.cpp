@@ -61,13 +61,12 @@ int main(int argc,char* argv[])
       string addr_str = line_buffer.substr(0,8);
       if (addr_str.compare(ENTRY_ADDR_STR) == 0)
         start_flag = true;
-
-      if (start_flag && is_number(addr_str)) {
+      if (start_flag && (is_number(addr_str) || is_number(addr_str.substr(4)))) {
         unsigned int addr_val = stoul(addr_str,nullptr,16);
         if (line_buffer[8] == ':') { //is instruction
           string instruction_contain = line_buffer.substr(10); //to end
           instr.insert(make_pair(addr_val,instruction_contain));
-          //cout << "dump " << setw(8) << hex << right << addr_val << " " << instruction_contain << endl;
+          // cout << "dump " << setw(8) << hex << right << addr_val << " " << instruction_contain << endl;
         } else { // is function entry
           string function_data = line_buffer.substr(9); //to end
           function_entry_map.insert(pair<unsigned int,string>(addr_val,function_data));

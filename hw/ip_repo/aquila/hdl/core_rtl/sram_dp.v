@@ -79,7 +79,7 @@ reg [DATA_WIDTH-1 : 0] RAM [N_ENTRIES-1 : 0];
 
 initial
 begin
-    $readmemh("uartboot.mem", RAM);
+    $readmemh("uartboot_new.mem", RAM);
 end
 
 // ------------------------------------

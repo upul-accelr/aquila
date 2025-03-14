@@ -20,7 +20,12 @@ module mock_uart # (
     input  logic [ C_M_AXI_DATA_WIDTH/8-1 : 0] M_DEVICE_byte_enable, //don't care
     input  logic [ C_M_AXI_DATA_WIDTH - 1 : 0] M_DEVICE_core2dev_data,
     output logic                               M_DEVICE_data_ready,
-    output logic [ C_M_AXI_DATA_WIDTH - 1 : 0] M_DEVICE_dev2core_data
+    output logic [ C_M_AXI_DATA_WIDTH - 1 : 0] M_DEVICE_dev2core_data,
+
+    // Additional signals to handle RX
+    output logic uart_rx_pop_o,
+    output logic uart_rx_fifo_valid_o,
+    input logic [7:0] rx_data_i
 
   );
   /*verilator public_module*/
@@ -56,14 +61,19 @@ module mock_uart # (
   logic reads_done;
   logic writes_done;
 
+  assign uart_rx_pop_o = uart_rx_pop;
+  assign uart_rx_fifo_valid_o = uart_rx_fifo_valid;
+
+  assign uart_rx_fifo = rx_data_i;
+
   always_comb
     uart_tx_push = (M_DEVICE_addr == UART_TXFIFO_ADDR && M_DEVICE_rw == 1 && M_DEVICE_strobe); //write
   always_comb
     uart_tx_pop = (transmit_counter >= UART_TX_FIFO_DELAY); //write
   always_comb
-    uart_rx_push = 0; //write
+    uart_rx_push = 1; //read
   always_comb
-    uart_rx_pop = (M_DEVICE_addr == UART_RXFIFO_ADDR && M_DEVICE_rw == 0);  //read
+    uart_rx_pop = (M_DEVICE_addr == UART_RXFIFO_ADDR && M_DEVICE_rw == 0 && M_DEVICE_strobe);  //read
 
   always_ff@(posedge clk) begin
     if (~rst_n) begin
@@ -103,30 +113,7 @@ module mock_uart # (
     reads_done = read_counter >= AXI_LANTENCY;
 
   always_comb
-    uart_status = {uart_rx_fifo_full,uart_tx_fifo_empty,uart_rx_fifo_full,uart_rx_fifo_valid};
-
-  always_ff@(posedge clk)
-    if (~rst_n)
-      uart_tx_fifo_full <= 0;
-    else if (uart_tx_push)
-      uart_tx_fifo_full <= 1;
-    else if (uart_tx_pop)
-      uart_tx_fifo_full <= 0;
-    else
-      uart_tx_fifo_full <= uart_tx_fifo_full;
-
-  always_ff@(posedge clk)
-    if (~rst_n)
-      uart_tx_fifo_empty <= 0;
-    else if (uart_tx_push)
-      uart_tx_fifo_empty <= 0;
-    else if (uart_tx_pop)
-      uart_tx_fifo_empty <= 1;
-    else
-      uart_tx_fifo_empty <= uart_tx_fifo_empty;
-
-  always_comb
-    uart_status = {uart_rx_fifo_full,uart_tx_fifo_empty,uart_rx_fifo_full,uart_rx_fifo_valid};
+    uart_status = {uart_tx_fifo_full,uart_tx_fifo_empty,uart_rx_fifo_full,uart_rx_fifo_valid};
 
   always_ff@(posedge clk)
     if (~rst_n)
@@ -195,16 +182,7 @@ module mock_uart # (
     else if (cur_state == WRITE && M_DEVICE_addr == UART_TXFIFO_ADDR)
       uart_tx_fifo <= M_DEVICE_core2dev_data[7:0];
     else
-      uart_rx_fifo <= uart_tx_fifo;
-
-    //not implements rx
-  always_ff @(posedge clk)
-    if (~rst_n)
-      uart_rx_fifo <= 0;
-    else if (cur_state == WRITE && M_DEVICE_addr == UART_RXFIFO_ADDR)
-      uart_rx_fifo <= M_DEVICE_core2dev_data[7:0];
-    else
-      uart_rx_fifo <= uart_rx_fifo;
+      uart_tx_fifo <= uart_tx_fifo;
 
   //riscv-test tohost hacking
   always_ff @(posedge clk)

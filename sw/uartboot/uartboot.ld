@@ -59,8 +59,8 @@ __stack_size = 0x300;
 
 MEMORY
 {
-    code_ram   (rx!rw) : ORIGIN = 0x00000000, LENGTH = 0x900
-    data_ram   (rw!x)  : ORIGIN = 0x00000900, LENGTH = 0x800
+    code_ram   (rx!rw) : ORIGIN = 0x00000000, LENGTH = 0x1000
+    data_ram   (rw!x)  : ORIGIN = 0x00001000, LENGTH = 0x1000
 }
 
 SECTIONS

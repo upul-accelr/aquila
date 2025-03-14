@@ -164,9 +164,9 @@ module csr_file #( parameter HART_ID = 0, XLEN = 32 )
 `define     CSR_CYCLE       12'hC00         // RO               Cycle counter for RDCYCLE instruction.
 `define     CSR_TIME        12'hC01         // RO               Timer for RDTIME instruction.
 `define     CSR_INSTRET     12'hC02         // RO               Instructions-retired counter for RDINSTRET instruction.
-`define     CSR_CYCLEH      12'hC00         // RO               Upper 32 bits of cycle, RV32I only.
-`define     CSR_TIMEH       12'hC01         // RO               Upper 32 bits of time, RV32I only.
-`define     CSR_INSTRETH    12'hC02         // RO               Upper 32 bits of instret, RV32I only.
+`define     CSR_CYCLEH      12'hC80         // RO               Upper 32 bits of cycle, RV32I only.
+`define     CSR_TIMEH       12'hC81         // RO               Upper 32 bits of time, RV32I only.
+`define     CSR_INSTRETH    12'hC82         // RO               Upper 32 bits of instret, RV32I only.
 
 `define M_MODE 2'b11 
 `define S_MODE 2'b01
@@ -826,7 +826,7 @@ begin
 
         `CSR_SSTATUS:
             csr_data = sstatus;
-        `CSR_MIE:
+        `CSR_SIE:
             csr_data = sie;
         `CSR_SIP:
             csr_data = sip;

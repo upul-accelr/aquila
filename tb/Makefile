@@ -13,6 +13,7 @@ CUR_DIR=$(shell pwd)
 CPPFLAGS = -std=c++11 -I$(VDIR) `pkg-config --cflags verilator`
 
 AQUILA_CORE_SRC=../hw/aquila_soc/ip_repo/aquila/hdl/core_rtl/*v
+INCLUDE_DIR=../hw/aquila_soc/ip_repo/aquila/hdl/core_rtl/
 
 CORE_VER_SRC=./vsrc/*v \
 			 ./vsrc/*.sv
@@ -40,6 +41,8 @@ core_versyn:
 .ONESHELL:
 core_verilate:
 	$(VERILATOR) $(verilator_flag) $(AQUILA_CORE_SRC) $(CORE_VER_SRC) \
+	+incdir+$(INCLUDE_DIR) \
+	--unroll-count 4096 \
 	-Wno-lint -Wno-style -Wno-fatal \
 	-Mdir core_obj_dir \
 	-CFLAGS $(CPPFLAGS) \
@@ -47,7 +50,7 @@ core_verilate:
 	--top-module aquila_testharness  --trace --trace-max-array 3000 \
 	--trace-max-width 2560  --exe  csrc/aquila_core_tb.cpp csrc/sim_mem.cpp
 	make -j -C core_obj_dir -f Vaquila_testharness.mk Vaquila_testharness
-	cp ../hw/aquila_soc/ip_repo/aquila/hdl/mem/bootrom.mem core_obj_dir
+	cp ../hw/aquila_soc/ip_repo/aquila/hdl/mem/uartboot_new.mem core_obj_dir
 
 .PHONY: build_riscv_tests
 .ONESHELL:
@@ -109,5 +112,6 @@ run_riscv_torture:
 clean:
 	rm -rf core_obj_dir
 	rm -rf full_obj_dir
-	rm build.log
+	rm -rf obj_dir
+	rm -rf build.log
 	rm -rf tmp

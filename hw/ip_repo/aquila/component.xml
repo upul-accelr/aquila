@@ -3246,7 +3246,7 @@
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>hdl/mem/uartboot.mem</spirit:name>
+        <spirit:name>hdl/mem/uartboot_new.mem</spirit:name>
         <spirit:userFileType>mem</spirit:userFileType>
       </spirit:file>
       <spirit:file>

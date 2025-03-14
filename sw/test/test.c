@@ -102,11 +102,12 @@ unsigned int addr = 0;
 
 int main(void)
 {
-    float ver = 1.02;
+    int ver_major = 1;
+    int ver_minor = 2;
 
-    printf("Hello, Aquila %.3f!\n", ver);
-    printf("The address of 'ver' is 0x%X\n\n", (unsigned) &ver);
-    dram_test();
+    printf("Hello, Aquila %d.%2d!\n", ver_major, ver_minor);
+    printf("The address of 'ver_major' is 0x%X\n\n", (unsigned) &ver_major);
+    // dram_test();
 
     malloc_test(5000);
 
@@ -123,7 +124,7 @@ volatile int *trigger = ((int volatile *) 0xF0000010);
 
 int dram_test(void)
 {
-    unsigned long *dram = (unsigned long *) 0x80000000;
+    unsigned long *dram = (unsigned long *) 0x80004000;
     int idx;
 
     printf("\nDRAM writing test:\n");

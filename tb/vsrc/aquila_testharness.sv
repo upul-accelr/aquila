@@ -84,7 +84,11 @@ module aquila_testharness #
     input logic   clk,
     input logic   rst_n,
     input logic   [31 : 0] main_memory_addr,
-    output logic [31:0] cur_instr_addr
+    output logic [31:0] cur_instr_addr,
+
+    output logic uart_rx_pop_o,
+    output logic uart_rx_fifo_valid_o,
+    input logic [7:0] rx_data_i
 );
 
 
@@ -104,7 +108,6 @@ wire [C_M_DEVICE_PORT_DATA_WIDTH/8-1 : 0] M_DEVICE_byte_enable;
 wire [C_M_DEVICE_PORT_DATA_WIDTH - 1 : 0] M_DEVICE_core2dev_data;
 wire                                      M_DEVICE_data_ready;
 wire [C_M_DEVICE_PORT_DATA_WIDTH - 1 : 0] M_DEVICE_dev2core_data;
-
 
 // Debug pc
 wire [31:0] debug_pc/*verilator public_flat*/;
@@ -171,6 +174,10 @@ mock_uart mock_uart_0(
     .M_DEVICE_byte_enable(M_DEVICE_byte_enable),
     .M_DEVICE_core2dev_data(M_DEVICE_core2dev_data),
     .M_DEVICE_data_ready(M_DEVICE_data_ready),
-    .M_DEVICE_dev2core_data(M_DEVICE_dev2core_data)
+    .M_DEVICE_dev2core_data(M_DEVICE_dev2core_data),
+
+    .uart_rx_pop_o(uart_rx_pop_o),
+    .uart_rx_fifo_valid_o(uart_rx_fifo_valid_o),
+    .rx_data_i(rx_data_i)
 );
 endmodule

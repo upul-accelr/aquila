@@ -18,7 +18,7 @@
 //#undef TRACE
 #define FENCE_ENABLE
 #undef FENCE_ENABLE
-#define MAX_SIM_CYCLE 1000000 //change here to simulate more cycle
+#define MAX_SIM_CYCLE 8000000 //change here to simulate more cycle
 
 using namespace std;
 static vluint64_t cpuTime = 0;
@@ -40,6 +40,9 @@ int main(int argc, char **argv)
     Verilated::commandArgs(argc,argv);
     map<string,uint64_t> elf_symbols;
     bool rv_test_enable = false;
+    char *program;
+
+    int rx_data_count = 0;
 
     if (argc < 2) {
         usage(argv[0]);
@@ -69,7 +72,7 @@ int main(int argc, char **argv)
 #endif
     uint32_t entry_addr = 0x00000000;
 
-    elf_symbols = sim_mem_load_program(top->aquila_testharness->mock_ram, string(argv[1]), &entry_addr);
+    // elf_symbols = sim_mem_load_program(top->aquila_testharness->mock_ram, string(argv[1]), &entry_addr);
 
     if (rv_test_enable) {
         if (elf_symbols.count("tohost")){
@@ -83,8 +86,11 @@ int main(int argc, char **argv)
     top->rst_n = 0;
     cout << "entry_addr = " << "0x" << setfill('0') << setw(8) << right << hex << entry_addr << endl;
     top->main_memory_addr = entry_addr;
+    // top->main_memory_addr = 0;
+
+    load_program(string(argv[1]), program);
     //load_simple_asm();
-    sim_mem_dump_memory(top->aquila_testharness->mock_ram, "dump.mem");
+    // sim_mem_dump_memory(top->aquila_testharness->mock_ram, "dump.mem");
     for (int i = 0 ; i < 5 ; i ++){
         top->clk = 0;
         top->eval ();
@@ -112,6 +118,13 @@ int main(int argc, char **argv)
 #endif
         log_file << "#" << setfill('0') << setw(10) << right << i <<
             ":" << setfill('0') << setw(8) << right << hex << top->cur_instr_addr << endl;
+
+        if((top->uart_rx_pop_o == 1)&&(top->uart_rx_fifo_valid_o == 1)){
+            // cout << "rx push : " << (uint32_t)(top->uart_rx_pop_o) << ", rx fifo valid : " 
+            // << (uint32_t)(top->uart_rx_fifo_valid_o) << endl;
+            top->rx_data_i = program[rx_data_count++];
+        }
+
         top->clk = 1;
         top->eval ();
         cpuTime += 5;
@@ -133,6 +146,7 @@ int main(int argc, char **argv)
             }
         }
     }
+    sim_mem_dump_memory(top->aquila_testharness->mock_ram, "dump.mem");
 #ifdef TRACE
     Vcdfp->close();
     delete Vcdfp;

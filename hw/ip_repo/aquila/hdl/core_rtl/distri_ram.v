@@ -74,7 +74,7 @@ assign data_o = RAM[read_addr_i];
 initial
 begin
     for (i = 0; i < ENTRY_NUM; i = i + 1)
-        RAM[i] <= 0;
+        RAM[i] = 0;
 end
 
 always @(posedge clk_i)

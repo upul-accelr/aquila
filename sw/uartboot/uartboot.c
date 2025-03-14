@@ -61,6 +61,7 @@
 // =============================================================================
 #include <elf.h>
 #include <stdint.h>
+#include <time.h>
 #include "io_uart.h"
 
 int load_elf_tcm(Elf32_Ehdr *ehdr);
@@ -79,6 +80,11 @@ uint8_t eheader[64], pheader[128];
 char    *organization = "EISL@NCTU, Hsinchu, Taiwan";
 int     year = 2022;
 
+void sleep(unsigned long long tick)
+{
+    while (tick-- > 0) /* busy waiting */;
+}
+
 int main(void)
 {
     Elf32_Ehdr *ehdr = (Elf32_Ehdr *) eheader;
@@ -89,6 +95,13 @@ int main(void)
     printf("=======================================================================\n");
     printf("Copyright (c) 2019-%d, %s.\n", year, organization);
     printf("The Aquila SoC is ready.\n");
+
+    for(idx = 0; idx < 5; idx++){
+        printf("warming up processer - cycle : %d\n", idx);
+        sleep(500000000);
+    }
+
+
     printf("Waiting for an ELF file to be sent from the UART ...\n");
 
     // Read the ELF header.
@@ -104,6 +117,7 @@ int main(void)
 
         if ((uint32_t) prog < 0x10000) // Loading the ELF file to the TCM.
         {
+            // printf("Load program to TCM\n");
             // We can perform on-the-fly parse-loading from the UART input
             // directly into the TCM. This is important when the system
             // has no DRAM to be used as a loading buffer.
@@ -111,12 +125,18 @@ int main(void)
         }
         else  // Loading the ELF file to the DDRx main memory.
         {
+            // printf("Load program to DDR | size : %d\n", size);
             // Parse-loading of an ELF file directly from the UART
             // to the main memory is not reliable. So, we save the
             // ELF image into a main memory buffer first, then
             // parse-load the ELF image to its destination.
-            uint8_t *elfp = (uint8_t *) 0x8F000000UL; // ELF image buffer
-            for (idx = hsize; idx < size; idx++) elfp[idx] = inbyte();
+            uint8_t *elfp = (uint8_t *) 0x80100000UL; // ELF image buffer
+            // printf("Loading to memory buffer first...\n");
+            for (idx = hsize; idx < size; idx++){
+                if(idx%1000 == 0) printf("idx : %d\n", idx);
+                elfp[idx] = inbyte();
+            } 
+            // printf("Now loading to DDR...\n");
             load_elf_ddr(ehdr, elfp);
         }
 
@@ -194,6 +214,7 @@ int load_elf_ddr(Elf32_Ehdr *ehdr, uint8_t *elf_base)
     section = (Elf32_Phdr *) (elf_base + ehdr->e_phoff);
     for (idx = 0; idx < ehdr->e_phnum; idx++)
     {
+        // printf("program header entry : %d\n", idx);
         // Locate CODE and DATA sections
         if (section[idx].p_type == PT_LOAD && section[idx].p_filesz != 0)
         {
@@ -201,6 +222,7 @@ int load_elf_ddr(Elf32_Ehdr *ehdr, uint8_t *elf_base)
             dst_addr = (uint32_t) section[idx].p_paddr;
             for (jdx = 0; jdx < section[idx].p_filesz; jdx+=sizeof(int))
             {
+                // printf("segment : 0x%X, val : 0x%X\n", (dst_addr+jdx), *(uint32_t *)(src_addr+jdx));
                 *(uint32_t *)(dst_addr+jdx) = *(uint32_t *)(src_addr+jdx);
             }
             while (jdx < section[idx].p_memsz)
